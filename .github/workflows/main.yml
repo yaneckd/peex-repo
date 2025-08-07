@@ -70,7 +70,7 @@ jobs:
         run: |
           docker run -d --name ci-cd-tutorial-sample-app \
             -p 8000:8000 \
-            my-app:dev
+            ci-cd-tutorial-sample-app
 
   deploy-prod:
     needs: docker-build
