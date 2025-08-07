@@ -68,7 +68,7 @@ jobs:
 
       - name: Deploy to Dev (run container)
         run: |
-          docker run -d --name my-app-dev \
+          docker run -d --name ci-cd-tutorial-sample-app \
             -p 8000:8000 \
             my-app:dev
 
