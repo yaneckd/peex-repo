@@ -93,6 +93,20 @@ jobs:
             -p $PORT:$PORT \
             $IMAGE_NAME:latest
 
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "DEV Deployment Successful"
+          to: "jdobr@softserveinc.com"
+          from: "jdobr@softserveinc.com"
+          body: |
+            Pipeline on branch ${{ github.ref }} finished with success.
+            Commit: ${{ github.sha }}
+
   deploy-prod:
     needs: docker-build
     runs-on: ubuntu-latest
@@ -119,3 +133,18 @@ jobs:
           docker run -d --name prod-container \
             -p $PORT:$PORT \
             $IMAGE_NAME:latest
+
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "PROD Deployment Successful"
+          to: "jdobr@softserveinc.com"
+          from: "jdobr@softserveinc.com"
+          body: |
+            Pipeline on branch ${{ github.ref }} finished with success.
+            Commit: ${{ github.sha }}
+
