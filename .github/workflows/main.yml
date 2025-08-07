@@ -1,5 +1,9 @@
 name: CI/CD Pipeline
 
+env:
+  IMAGE_NAME: ci-cd-tutorial-sample-app
+  PORT: 8000
+
 on:
   push:
     branches:
@@ -52,15 +56,15 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ci-cd-tutorial-sample-app .
+          docker build -t $IMAGE_NAME .
       
       - name: Save Docker image to tarball
-        run: docker save ci-cd-tutorial-sample-app:latest -o app-image.tar
+        run: docker save $IMAGE_NAME:latest -o app-image.tar
 
       - name: Upload image as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ci-cd-tutorial-sample-app
+          name: $IMAGE_NAME
           path: app-image.tar
 
   deploy-dev:
@@ -75,7 +79,7 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v4
         with:
-          name: ci-cd-tutorial-sample-app
+          name: $IMAGE_NAME
           path: .
 
       - name: Load Docker image
@@ -86,9 +90,9 @@ jobs:
 
       - name: Deploy to Dev (run container)
         run: |
-          docker run -d --name ci-cd-tutorial-sample-app \
-            -p 8000:8000 \
-            ci-cd-tutorial-sample-app:latest
+          docker run -d --name dev-container \
+            -p $PORT:$PORT \
+            $IMAGE_NAME:latest
 
   deploy-prod:
     needs: docker-build
@@ -99,5 +103,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: $IMAGE_NAME
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i app-image.tar
+
       - name: Deploy-prod
         run: echo "Deploying to prod"
+
+      - name: Deploy to Prod (run container)
+        run: |
+          docker run -d --name prod-container \
+            -p $PORT:$PORT \
+            $IMAGE_NAME:latest
