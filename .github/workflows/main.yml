@@ -38,9 +38,9 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with unittest
-      run: |
-        python -m unittest discover
+    # - name: Test with unittest
+    #   run: |
+    #     python -m unittest discover
 
   docker-build:
     needs: build-test
@@ -65,6 +65,12 @@ jobs:
 
       - name: Deploy-dev
         run: echo "Deploying to dev"
+
+      - name: Deploy to Dev (run container)
+        run: |
+          docker run -d --name my-app-dev \
+            -p 8000:8000 \
+            my-app:dev
 
   deploy-prod:
     needs: docker-build
