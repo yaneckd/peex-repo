@@ -7,6 +7,7 @@ env:
 on:
   push:
     branches:
+      - main
       - dev
   pull_request:
     branches:
@@ -102,7 +103,7 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "DEV Deployment Successful"
           to: "jdobr@softserveinc.com"
-          from: "jdobr@softserveinc.com"
+          from: ${{ secrets.SMTP_USERNAME }}
           body: |
             Pipeline on branch ${{ github.ref }} finished with success.
             Commit: ${{ github.sha }}
@@ -143,7 +144,7 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "PROD Deployment Successful"
           to: "jdobr@softserveinc.com"
-          from: "jdobr@softserveinc.com"
+          from: ${{ secrets.SMTP_USERNAME }}
           body: |
             Pipeline on branch ${{ github.ref }} finished with success.
             Commit: ${{ github.sha }}
