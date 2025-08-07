@@ -1,5 +1,9 @@
 name: CI/CD Pipeline
 
+env:
+  IMAGE_NAME: ci-cd-tutorial-sample-app
+  PORT: 8000
+
 on:
   push:
     branches:
@@ -12,23 +16,35 @@ on:
 
 jobs:
   build-test:
+    name: Run code tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8] # Using a list so it's extensible for future use
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v2
+    - name: Setting up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Lint the code with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    # - name: Test with unittest
+    #   run: |
+    #     python -m unittest discover
 
   docker-build:
     needs: build-test
@@ -40,7 +56,16 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ci-cd-tutorial-sample-app .
+          docker build -t $IMAGE_NAME .
+      
+      - name: Save Docker image to tarball
+        run: docker save $IMAGE_NAME:latest -o app-image.tar
+
+      - name: Upload image as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: $IMAGE_NAME
+          path: app-image.tar
 
   deploy-dev:
     needs: docker-build
@@ -51,8 +76,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: $IMAGE_NAME
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i app-image.tar
+
       - name: Deploy-dev
         run: echo "Deploying to dev"
+
+      - name: Deploy to Dev (run container)
+        run: |
+          docker run -d --name dev-container \
+            -p $PORT:$PORT \
+            $IMAGE_NAME:latest
 
   deploy-prod:
     needs: docker-build
@@ -63,5 +103,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: $IMAGE_NAME
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i app-image.tar
+
       - name: Deploy-prod
         run: echo "Deploying to prod"
+
+      - name: Deploy to Prod (run container)
+        run: |
+          docker run -d --name prod-container \
+            -p $PORT:$PORT \
+            $IMAGE_NAME:latest
