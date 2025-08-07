@@ -93,6 +93,12 @@ jobs:
             -p $PORT:$PORT \
             $IMAGE_NAME:latest
 
+      - name: Send message to Teams
+        run: |
+          curl -H 'Content-Type: application/json' \
+               -d '{"text": "✅ DEV CI/CD pipeline passed successfully!"}' \
+               ${{ secrets.TEAMS_WEBHOOK_URL }}
+
   deploy-prod:
     needs: docker-build
     runs-on: ubuntu-latest
@@ -119,3 +125,11 @@ jobs:
           docker run -d --name prod-container \
             -p $PORT:$PORT \
             $IMAGE_NAME:latest
+
+      - name: Send message to Teams
+        run: |
+          curl -H 'Content-Type: application/json' \
+               -d '{"text": "✅ PROD CI/CD pipeline passed successfully!"}' \
+               ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+
