@@ -30,16 +30,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run DB migrations
-        run: |
-          source venv/bin/activate
-          flask db upgrade
-
-      - name: Seed database
-        run: |
-          source venv/bin/activate
-          python seed.py
-
       - name: Run Unit Tests
         run: |
           source venv/bin/activate
