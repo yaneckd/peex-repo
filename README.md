@@ -1,4 +1,4 @@
-![CI/CD](https://github.com/yaneckd/peex-repo/actions/workflows/ci-cd.yml/badge.svg?branch=main)
+![CI/CD](https://github.com/yaneckd/peex-repo/actions/workflows/main.yml/badge.svg)
 
 # CD/CI Tutorial Sample Application
 
